@@ -1,0 +1,63 @@
+/* Reset minimal + thème maritime */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* Palette maritime */
+  --color-ocean-deep:   #0a1628;
+  --color-ocean-mid:    #0d2137;
+  --color-ocean-light:  #1a3a5c;
+  --color-surface:      #1e4976;
+  --color-accent:       #00bfff;   /* Bleu ciel — alertes, boutons */
+  --color-danger:       #ff3b3b;   /* Rouge — SOS */
+  --color-warning:      #ffa500;   /* Orange — avertissements */
+  --color-success:      #00c851;   /* Vert — connecté, OK */
+  --color-text:         #e2e8f0;
+  --color-text-muted:   #8ba3bc;
+  --color-border:       #2d4a6b;
+
+  /* Typographie */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Cascadia Code', 'Consolas', monospace;
+
+  /* Espacements */
+  --radius-sm:  4px;
+  --radius-md:  8px;
+  --radius-lg: 16px;
+
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--color-text);
+  background-color: var(--color-ocean-deep);
+}
+
+body {
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Utilitaires globaux */
+button {
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
