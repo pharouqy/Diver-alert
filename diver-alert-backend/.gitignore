@@ -1,0 +1,12 @@
+# Dépendances npm
+node_modules/
+
+# Variables d'environnement — ne jamais commiter
+.env
+
+# Logs
+*.log
+logs/
+
+# Build / distribution
+dist/
