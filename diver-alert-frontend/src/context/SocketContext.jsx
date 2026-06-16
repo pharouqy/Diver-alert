@@ -44,6 +44,9 @@ export function SocketProvider({ children }) {
   const [divers, setDivers] = useState([]); // Plongeurs connectés
   const [activeAlert, setActiveAlert] = useState(null); // Alerte SOS reçue en cours
 
+  // Ajouter après les autres useState
+  const [myAlertId, setMyAlertId] = useState(null);
+
   // ── Connexion / déconnexion selon l'état auth ──────────────────────────────
   useEffect(() => {
     if (!user) {
@@ -125,12 +128,16 @@ export function SocketProvider({ children }) {
       setActiveAlert(alertData);
     });
 
-    socket.on("alert:cancelled", ({ alertId }) => {
-      setActiveAlert((prev) => (prev?.alertId === alertId ? null : prev));
-    });
-
+    // Remplacer l'handler alert:confirmed
     socket.on("alert:confirmed", (data) => {
       console.log("✅ SOS confirmé :", data);
+      setMyAlertId(data.alertId); // ← ajouté
+    });
+
+    // Remplacer l'handler alert:cancelled
+    socket.on("alert:cancelled", ({ alertId }) => {
+      setActiveAlert((prev) => (prev?.alertId === alertId ? null : prev));
+      setMyAlertId((prev) => (prev === alertId ? null : prev)); // ← ajouté
     });
 
     socket.on("error", (err) => {
@@ -175,6 +182,7 @@ export function SocketProvider({ children }) {
         isConnected,
         divers,
         activeAlert,
+        myAlertId, // ← ajouté
         emitPosition,
         emitSOS,
         cancelAlert,

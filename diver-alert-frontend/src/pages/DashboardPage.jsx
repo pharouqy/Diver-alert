@@ -1,9 +1,13 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useGeolocation } from "../hooks/useGeolocation";
 import { useSocket } from "../hooks/useSocket";
 import { usePositionEmitter } from "../hooks/useSocket";
 import MapView from "../components/MapView";
+
+import AlertButton from "../components/AlertButton";
+import AlertNotification from "../components/AlertNotification";
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
@@ -17,10 +21,10 @@ export default function DashboardPage() {
   } = useGeolocation();
   const { isConnected, divers, activeAlert } = useSocket();
 
+  const [alertRadius, setAlertRadius] = useState(5); // km
+
   // Émettre la position GPS au socket toutes les 5s (configurable via .env)
   usePositionEmitter(position);
-
-  const alertRadius = 5; // km — sera configurable via UI (étape 23)
 
   const handleLogout = () => {
     logout();
@@ -128,22 +132,27 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── Barre SOS (AlertButton.jsx viendra ici — étape 23) ──────────── */}
-      <div style={S.sosBar}>
-        <button
-          style={{ ...S.sosBtn, opacity: position && isConnected ? 1 : 0.45 }}
-          disabled={!position || !isConnected}
-        >
-          🆘 ENVOYER UNE ALERTE SOS
-        </button>
-        <p style={S.sosHint}>
-          {!isConnected
-            ? "⚠️ Non connecté au serveur"
-            : !position
-              ? "En attente du signal GPS..."
-              : `Rayon d'alerte : ${alertRadius} km`}
-        </p>
+      {/* ── Bouton SOS ───────────────────────────────────────────────── */}
+      <div
+        style={{
+          background: "var(--color-ocean-mid)",
+          borderTop: "1px solid var(--color-border)",
+          flexShrink: 0,
+        }}
+      >
+        <AlertButton
+          position={position}
+          isConnected={isConnected}
+          alertRadius={alertRadius}
+          onRadiusChange={setAlertRadius}
+        />
       </div>
+      {/* ── Notification alerte reçue ────────────────────────────────── */}
+      <AlertNotification
+        alert={activeAlert}
+        myPosition={position}
+        onDismiss={() => {}} // Le dismiss est géré en interne par AlertNotification
+      />
     </div>
   );
 }

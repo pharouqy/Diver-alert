@@ -68,7 +68,7 @@ const authLimiter = rateLimit({
 });
 
 // Appliqué ici pour intercepter AVANT même que les routes soient définies
-app.use('/api/auth', authLimiter);
+//app.use('/api/auth', authLimiter);
 
 // ─── 5. Route de santé ───────────────────────────────────────────────────────
 

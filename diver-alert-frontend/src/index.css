@@ -1,5 +1,7 @@
 /* Reset minimal + thème maritime */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -7,25 +9,25 @@
 
 :root {
   /* Palette maritime */
-  --color-ocean-deep:   #0a1628;
-  --color-ocean-mid:    #0d2137;
-  --color-ocean-light:  #1a3a5c;
-  --color-surface:      #1e4976;
-  --color-accent:       #00bfff;   /* Bleu ciel — alertes, boutons */
-  --color-danger:       #ff3b3b;   /* Rouge — SOS */
-  --color-warning:      #ffa500;   /* Orange — avertissements */
-  --color-success:      #00c851;   /* Vert — connecté, OK */
-  --color-text:         #e2e8f0;
-  --color-text-muted:   #8ba3bc;
-  --color-border:       #2d4a6b;
+  --color-ocean-deep: #0a1628;
+  --color-ocean-mid: #0d2137;
+  --color-ocean-light: #1a3a5c;
+  --color-surface: #1e4976;
+  --color-accent: #00bfff; /* Bleu ciel — alertes, boutons */
+  --color-danger: #ff3b3b; /* Rouge — SOS */
+  --color-warning: #ffa500; /* Orange — avertissements */
+  --color-success: #00c851; /* Vert — connecté, OK */
+  --color-text: #e2e8f0;
+  --color-text-muted: #8ba3bc;
+  --color-border: #2d4a6b;
 
   /* Typographie */
-  --font-sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: 'Cascadia Code', 'Consolas', monospace;
+  --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Cascadia Code", "Consolas", monospace;
 
   /* Espacements */
-  --radius-sm:  4px;
-  --radius-md:  8px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
   --radius-lg: 16px;
 
   font-family: var(--font-sans);
@@ -60,4 +62,58 @@ a {
 
 a:hover {
   text-decoration: underline;
+}
+
+/* ── Animation SOS pulse ─────────────────────────────────────────────────── */
+@keyframes sos-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.15);
+  }
+}
+.sos-pulse {
+  animation: sos-pulse 1s ease-in-out infinite;
+}
+
+@keyframes progress-fill {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+/* ── Range slider (rayon d'alerte) ──────────────────────────────────────── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-ocean-light);
+  outline: none;
+  cursor: pointer;
+  flex: 1;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  cursor: pointer;
+  border: 2px solid var(--color-ocean-deep);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  cursor: pointer;
+  border: 2px solid var(--color-ocean-deep);
 }
