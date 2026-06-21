@@ -82,8 +82,9 @@ app.get('/health', (req, res) => {
 });
 
 // ─── 6. Routes métier ────────────────────────────────────────────────────────
-app.use('/api/auth',   require('./routes/auth.routes'));
-app.use('/api/alerts', require('./routes/alert.routes'));  // ← décommenter
+app.use('/api/auth',     require('./routes/auth.routes'));
+app.use('/api/alerts',   require('./routes/alert.routes'));  // ← décommenter
+app.use('/api/products', require('./routes/product.routes'));
 
 // ─── 7. Route inconnue (404) ─────────────────────────────────────────────────
 

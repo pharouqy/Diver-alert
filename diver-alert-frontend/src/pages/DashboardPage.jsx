@@ -8,6 +8,7 @@ import MapView from "../components/MapView";
 
 import AlertButton from "../components/AlertButton";
 import AlertNotification from "../components/AlertNotification";
+import ProductList from "../components/ProductList";
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
@@ -22,6 +23,8 @@ export default function DashboardPage() {
   const { isConnected, divers, activeAlert } = useSocket();
 
   const [alertRadius, setAlertRadius] = useState(5); // km
+  const [activeTab, setActiveTab] = useState('map'); // 'map' | 'marketplace'
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Émettre la position GPS au socket toutes les 5s (configurable via .env)
   usePositionEmitter(position);
@@ -45,6 +48,22 @@ export default function DashboardPage() {
           <span style={S.roleTag}>
             {user?.role === "rescuer" ? "🚨 Sauveteur" : "🤿 Plongeur"}
           </span>
+        </div>
+
+        {/* Onglets navigation */}
+        <div style={S.tabs}>
+          <button
+            style={activeTab === 'map' ? S.tabActive : S.tab}
+            onClick={() => setActiveTab('map')}
+          >
+            🗺️ SOS & Carte
+          </button>
+          <button
+            style={activeTab === 'marketplace' ? S.tabActive : S.tab}
+            onClick={() => setActiveTab('marketplace')}
+          >
+            🛒 Marketplace
+          </button>
         </div>
 
         <div style={S.statusGroup}>
@@ -106,47 +125,56 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ── Carte ────────────────────────────────────────────────────────── */}
-      <div style={{ flex: 1, position: "relative" }}>
-        <MapView
-          currentPosition={position}
-          userId={user?._id || user?.id}
-          divers={otherDivers}
-          alertRadius={alertRadius}
-          activeAlert={activeAlert}
-        />
+      {/* ── Corps principal ────────────────────────────────────────────────── */}
+      {activeTab === 'map' ? (
+        <div style={{ flex: 1, position: "relative", display: "flex", flexDirection: "column", minHeight: 0 }}>
+          {/* Carte */}
+          <div style={{ flex: 1, position: "relative" }}>
+            <MapView
+              currentPosition={position}
+              userId={user?._id || user?.id}
+              divers={otherDivers}
+              alertRadius={alertRadius}
+              activeAlert={activeAlert}
+            />
 
-        {/* Overlay : compteur de plongeurs + statut connexion */}
-        <div style={S.overlay}>
-          <span>
-            🤿 {otherDivers.length} plongeur
-            {otherDivers.length !== 1 ? "s" : ""} en ligne
-          </span>
-          {!isConnected && (
-            <span
-              style={{ color: "var(--color-warning)", fontSize: "0.75rem" }}
-            >
-              Reconnexion...
-            </span>
-          )}
+            {/* Overlay : compteur de plongeurs + statut connexion */}
+            <div style={S.overlay}>
+              <span>
+                🤿 {otherDivers.length} plongeur{otherDivers.length !== 1 ? "s" : ""} en ligne
+              </span>
+              {!isConnected && (
+                <span
+                  style={{ color: "var(--color-warning)", fontSize: "0.75rem" }}
+                >
+                  Reconnexion...
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Bouton SOS */}
+          <div
+            style={{
+              background: "var(--color-ocean-mid)",
+              borderTop: "1px solid var(--color-border)",
+              flexShrink: 0,
+            }}
+          >
+            <AlertButton
+              position={position}
+              isConnected={isConnected}
+              alertRadius={alertRadius}
+              onRadiusChange={setAlertRadius}
+            />
+          </div>
         </div>
-      </div>
-
-      {/* ── Bouton SOS ───────────────────────────────────────────────── */}
-      <div
-        style={{
-          background: "var(--color-ocean-mid)",
-          borderTop: "1px solid var(--color-border)",
-          flexShrink: 0,
-        }}
-      >
-        <AlertButton
-          position={position}
-          isConnected={isConnected}
-          alertRadius={alertRadius}
-          onRadiusChange={setAlertRadius}
+      ) : (
+        <ProductList
+          onCreateClick={() => {}}
+          refreshTrigger={refreshTrigger}
         />
-      </div>
+      )}
       {/* ── Notification alerte reçue ────────────────────────────────── */}
       <AlertNotification
         alert={activeAlert}
@@ -167,6 +195,33 @@ const S = {
     borderBottom: "1px solid var(--color-border)",
     gap: "0.75rem",
     flexShrink: 0,
+  },
+  tabs: {
+    display: "flex",
+    background: "var(--color-ocean-deep)",
+    padding: "0.25rem",
+    borderRadius: "var(--radius-md)",
+    border: "1px solid var(--color-border)",
+  },
+  tab: {
+    background: "none",
+    border: "none",
+    color: "var(--color-text-muted)",
+    padding: "0.375rem 0.75rem",
+    borderRadius: "var(--radius-sm)",
+    fontSize: "0.85rem",
+    fontWeight: 500,
+    cursor: "pointer",
+  },
+  tabActive: {
+    background: "var(--color-accent)",
+    color: "var(--color-ocean-deep)",
+    border: "none",
+    padding: "0.375rem 0.75rem",
+    borderRadius: "var(--radius-sm)",
+    fontSize: "0.85rem",
+    fontWeight: 600,
+    cursor: "pointer",
   },
   identity: { display: "flex", alignItems: "center", gap: "0.5rem" },
   name: { fontWeight: 600 },
