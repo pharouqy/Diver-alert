@@ -11,6 +11,7 @@ export default function ProductFormModal({ product, onClose, onSuccess }) {
   const [quantity, setQuantity] = useState('1');
   const [unit, setUnit] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
+  const [phone, setPhone] = useState('');
   const [status, setStatus] = useState('available');
 
   const [loading, setLoading] = useState(false);
@@ -27,6 +28,7 @@ export default function ProductFormModal({ product, onClose, onSuccess }) {
       setQuantity(product.quantity ? String(product.quantity) : '1');
       setUnit(product.unit || '');
       setPhotoUrl(product.photos && product.photos.length > 0 ? product.photos[0] : '');
+      setPhone(product.phone || '');
       setStatus(product.status || 'available');
     }
   }, [product]);
@@ -46,6 +48,7 @@ export default function ProductFormModal({ product, onClose, onSuccess }) {
       quantity: parseFloat(quantity) || 1,
       unit: unit.trim() || null,
       photos: photoUrl.trim() ? [photoUrl.trim()] : [],
+      phone: phone.trim() || null,
     };
 
     if (isEdit) {

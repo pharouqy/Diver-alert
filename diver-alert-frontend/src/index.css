@@ -117,3 +117,20 @@ input[type="range"]::-moz-range-thumb {
   cursor: pointer;
   border: 2px solid var(--color-ocean-deep);
 }
+
+/* ── Animations messagerie ───────────────────────────────────────────────── */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(1.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes shrink {
+  from { width: 100%; }
+  to   { width: 0%; }
+}

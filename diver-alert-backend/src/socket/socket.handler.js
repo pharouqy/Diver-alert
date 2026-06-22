@@ -13,6 +13,7 @@ const { getActiveDivers } = require('./socket.utils');
 
 const { handlePosition } = require('./handlers/position.handler');
 const { handleSOS, handleCancel } = require('./handlers/alert.handler');
+const { handleChatMessage } = require('./handlers/message.handler');
 
 // ── État en mémoire ─────────────────────────────────────────────────────────
 
@@ -88,6 +89,16 @@ const initSocket = (io) => {
             } catch (err) {
                 console.error('Erreur non gérée handleSOS:', err.message);
                 socket.emit('error', { code: 'SOS_ERROR', message: "Erreur lors de l'émission de l'alerte" });
+            }
+        });
+
+        // ── Messagerie privée ─────────────────────────────────────────────────
+        socket.on('chat:message', async (data) => {
+            try {
+                await handleChatMessage(socket, io, data, connectedDivers);
+            } catch (err) {
+                console.error('Erreur non gérée handleChatMessage:', err.message);
+                socket.emit('chat:error', { code: 'SERVER_ERROR', message: 'Erreur serveur lors de l\'envoi du message' });
             }
         });
 

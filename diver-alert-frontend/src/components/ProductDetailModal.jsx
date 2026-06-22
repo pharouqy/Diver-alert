@@ -1,15 +1,18 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 
-export default function ProductDetailModal({ product, onClose, onEditClick }) {
+export default function ProductDetailModal({ product, onClose, onEditClick, onContactSeller }) {
+  const { user } = useAuth();
+
   if (!product) return null;
 
-  const { user } = useAuth();
   const currentUserId = user?._id || user?.id;
   const ownerId = product.owner?._id || product.owner;
   const isOwner = currentUserId && ownerId && currentUserId.toString() === ownerId.toString();
 
   const isCatch = product.type === 'catch';
+  const phone = typeof product.phone === 'string' ? product.phone.trim() : '';
+  const phoneHref = phone ? `tel:${phone.replace(/[^\d+]/g, '')}` : null;
 
   return (
     <div style={S.backdrop}>
@@ -92,12 +95,30 @@ export default function ProductDetailModal({ product, onClose, onEditClick }) {
                 ✏ Modifier l'annonce
               </button>
             ) : (
+              <div style={S.contactActions}>
+                {onContactSeller && (
+                  <button
+                    type="button"
+                    onClick={() => onContactSeller(product)}
+                    style={S.contactBtn}
+                  >
+                    Message
+                  </button>
+                )}
+                {phoneHref && (
+                  <a href={phoneHref} style={S.phoneBtn}>
+                    Tel {phone}
+                  </a>
+                )}
+                {product.owner?.email && (
               <a
                 href={`mailto:${product.owner?.email}?subject=Intéressé par votre annonce : ${encodeURIComponent(product.title)}`}
                 style={S.contactBtn}
               >
                 ✉ Contacter le vendeur
               </a>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -270,6 +291,13 @@ const S = {
     fontSize: '0.75rem',
     color: 'var(--color-text-muted)',
   },
+  contactActions: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: '0.5rem',
+    flexWrap: 'wrap',
+  },
   contactBtn: {
     background: 'var(--color-accent)',
     color: 'var(--color-ocean-deep)',
@@ -280,6 +308,17 @@ const S = {
     textAlign: 'center',
     display: 'inline-block',
     border: 'none',
+    cursor: 'pointer',
+  },
+  phoneBtn: {
+    background: 'var(--color-success)',
+    color: 'var(--color-ocean-deep)',
+    fontWeight: 600,
+    padding: '0.5rem 0.875rem',
+    borderRadius: 'var(--radius-sm)',
+    fontSize: '0.85rem',
+    textAlign: 'center',
+    display: 'inline-block',
   },
   editBtn: {
     background: 'var(--color-warning)',

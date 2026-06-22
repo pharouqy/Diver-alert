@@ -43,6 +43,12 @@ const createProductRules = [
     .optional()
     .trim()
     .isString().withMessage("Chaque photo doit être une URL sous forme de chaîne de caractères"),
+
+  body('phone')
+    .optional({ nullable: true })
+    .trim()
+    .isString().withMessage("Le téléphone doit être une chaîne de caractères")
+    .isLength({ max: 30 }).withMessage("Le numéro de téléphone ne peut pas dépasser 30 caractères"),
 ];
 
 const updateProductRules = [
@@ -82,6 +88,12 @@ const updateProductRules = [
     .optional()
     .trim()
     .isString().withMessage("Chaque photo doit être une URL sous forme de chaîne de caractères"),
+
+  body('phone')
+    .optional({ nullable: true })
+    .trim()
+    .isString().withMessage("Le téléphone doit être une chaîne de caractères")
+    .isLength({ max: 30 }).withMessage("Le numéro de téléphone ne peut pas dépasser 30 caractères"),
 
   body('status')
     .optional()

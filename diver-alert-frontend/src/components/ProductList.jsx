@@ -4,7 +4,7 @@ import ProductDetailModal from './ProductDetailModal';
 import ProductFormModal from './ProductFormModal';
 import { useAuth } from '../context/AuthContext';
 
-export default function ProductList({ refreshTrigger }) {
+export default function ProductList({ refreshTrigger, onContactSeller }) {
   const { user } = useAuth();
   const currentUserId = user?._id || user?.id;
 
@@ -156,6 +156,10 @@ export default function ProductList({ refreshTrigger }) {
         <ProductDetailModal
           product={selectedProduct}
           onClose={() => setSelectedProduct(null)}
+          onContactSeller={(product) => {
+            onContactSeller?.(product);
+            setSelectedProduct(null);
+          }}
           onEditClick={() => {
             setProductToEdit(selectedProduct);
             setIsFormOpen(true);

@@ -12,7 +12,7 @@ const Product = require('../models/Product');
  */
 const createProduct = async (req, res, next) => {
   try {
-    const { type, title, description, price, quantity, unit, photos } = req.body;
+    const { type, title, description, price, quantity, unit, photos, phone } = req.body;
 
     const product = await Product.create({
       owner: req.user._id,
@@ -23,6 +23,7 @@ const createProduct = async (req, res, next) => {
       quantity,
       unit,
       photos,
+      phone,
     });
 
     res.status(201).json({
@@ -143,7 +144,7 @@ const updateProduct = async (req, res, next) => {
     }
 
     // Mettre à jour les champs autorisés
-    const allowedFields = ['type', 'title', 'description', 'price', 'quantity', 'unit', 'photos', 'status'];
+    const allowedFields = ['type', 'title', 'description', 'price', 'quantity', 'unit', 'photos', 'phone', 'status'];
     allowedFields.forEach((field) => {
       if (req.body[field] !== undefined) {
         product[field] = req.body[field];

@@ -64,6 +64,13 @@ const productSchema = new mongoose.Schema(
       default: [],
     },
 
+    phone: {
+      type: String,
+      trim: true,
+      default: null,
+      maxlength: [30, 'Le numéro de téléphone ne peut pas dépasser 30 caractères'],
+    },
+
     status: {
       type: String,
       enum: {

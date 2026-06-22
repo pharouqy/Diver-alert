@@ -1,14 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useGeolocation } from "../hooks/useGeolocation";
 import { useSocket } from "../hooks/useSocket";
 import { usePositionEmitter } from "../hooks/useSocket";
 import MapView from "../components/MapView";
-
 import AlertButton from "../components/AlertButton";
 import AlertNotification from "../components/AlertNotification";
 import ProductList from "../components/ProductList";
+import MessagingPanel from "../components/MessagingPanel";
+import ChatWindow from "../components/ChatWindow";
+import ChatNotification from "../components/ChatNotification";
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
@@ -20,13 +22,68 @@ export default function DashboardPage() {
     hasGoodAccuracy,
     retry,
   } = useGeolocation();
-  const { isConnected, divers, activeAlert } = useSocket();
+  const {
+    isConnected,
+    divers,
+    activeAlert,
+    unreadCounts,
+    incomingMessage,
+    dismissIncomingMessage,
+    fetchUnreadCounts,
+  } = useSocket();
 
-  const [alertRadius, setAlertRadius] = useState(5); // km
-  const [activeTab, setActiveTab] = useState('map'); // 'map' | 'marketplace'
+  const [alertRadius, setAlertRadius] = useState(5);
+  const [activeTab, setActiveTab] = useState('map');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Émettre la position GPS au socket toutes les 5s (configurable via .env)
+  // ── Messagerie ──────────────────────────────────────────────────────────────
+  const [msgPanelOpen, setMsgPanelOpen] = useState(false);
+  const [chatPeer, setChatPeer] = useState(null); // { userId, name, role }
+  const [chatDraft, setChatDraft] = useState('');
+
+  // Charger les compteurs non-lus au montage
+  useEffect(() => {
+    fetchUnreadCounts();
+  }, [fetchUnreadCounts]);
+
+  // Badge global = somme de tous les non-lus
+  const totalUnread = Object.values(unreadCounts).reduce((acc, n) => acc + n, 0);
+
+  const openChat = (peer, draft = '') => {
+    setChatPeer(peer);
+    setChatDraft(draft);
+    setMsgPanelOpen(false);
+  };
+
+  // Ouvrir le chat depuis la notification toast (on a senderId + senderName)
+  const openChatFromNotif = (senderId, senderName) => {
+    // Chercher le diver complet dans la liste, sinon construire un objet minimal
+    const diver = divers.find((d) => d.userId === senderId);
+    openChat(diver || { userId: senderId, name: senderName, role: 'diver' });
+  };
+
+  const openProductContactChat = (product) => {
+    const owner = product?.owner;
+    const ownerId = owner?._id || owner?.id || (typeof owner === 'string' ? owner : null);
+
+    if (!ownerId) return;
+
+    const sellerName = owner?.name || 'Vendeur';
+    const productTitle = product?.title ? ` "${product.title}"` : '';
+    const draft = `Bonjour, je suis interesse par votre annonce${productTitle}. Est-elle toujours disponible ?`;
+
+    openChat(
+      {
+        userId: ownerId.toString(),
+        name: sellerName,
+        role: owner?.role || 'diver',
+      },
+      draft,
+    );
+    setMsgPanelOpen(false);
+  };
+
+  // Émettre la position GPS
   usePositionEmitter(position);
 
   const handleLogout = () => {
@@ -34,7 +91,6 @@ export default function DashboardPage() {
     navigate("/login");
   };
 
-  // Plongeurs autres que soi-même (pour l'affichage carte)
   const otherDivers = divers.filter(
     (d) => d.userId !== (user?._id || user?.id),
   );
@@ -138,7 +194,7 @@ export default function DashboardPage() {
               activeAlert={activeAlert}
             />
 
-            {/* Overlay : compteur de plongeurs + statut connexion */}
+            {/* Overlay : compteur de plongeurs */}
             <div style={S.overlay}>
               <span>
                 🤿 {otherDivers.length} plongeur{otherDivers.length !== 1 ? "s" : ""} en ligne
@@ -172,15 +228,58 @@ export default function DashboardPage() {
       ) : (
         <ProductList
           onCreateClick={() => {}}
+          onContactSeller={openProductContactChat}
           refreshTrigger={refreshTrigger}
         />
       )}
-      {/* ── Notification alerte reçue ────────────────────────────────── */}
+
+      {/* ── Notification alerte SOS ──────────────────────────────────── */}
       <AlertNotification
         alert={activeAlert}
         myPosition={position}
-        onDismiss={() => {}} // Le dismiss est géré en interne par AlertNotification
+        onDismiss={() => {}}
       />
+
+      {/* ── Bouton flottant messagerie ───────────────────────────────────── */}
+      <button
+        style={S.fabChat}
+        onClick={() => {
+          setChatPeer(null);
+          setMsgPanelOpen((prev) => !prev);
+        }}
+        title="Messagerie"
+      >
+        💬
+        {totalUnread > 0 && (
+          <span style={S.fabBadge}>{totalUnread > 99 ? '99+' : totalUnread}</span>
+        )}
+      </button>
+
+      {/* ── Panel liste plongeurs ────────────────────────────────────────── */}
+      {msgPanelOpen && !chatPeer && (
+        <MessagingPanel
+          onSelectPeer={openChat}
+          onClose={() => setMsgPanelOpen(false)}
+        />
+      )}
+
+      {/* ── Fenêtre de chat ──────────────────────────────────────────────── */}
+      {chatPeer && (
+        <ChatWindow
+          peer={chatPeer}
+          initialDraft={chatDraft}
+          onClose={() => setChatPeer(null)}
+        />
+      )}
+
+      {/* ── Toast notification message entrant ──────────────────────────── */}
+      {incomingMessage && !chatPeer && (
+        <ChatNotification
+          notification={incomingMessage}
+          onOpen={openChatFromNotif}
+          onDismiss={dismissIncomingMessage}
+        />
+      )}
     </div>
   );
 }
@@ -268,7 +367,6 @@ const S = {
     textAlign: "center",
     fontSize: "1rem",
     flexShrink: 0,
-    animation: "none",
   },
   overlay: {
     position: "absolute",
@@ -286,6 +384,41 @@ const S = {
     gap: "0.25rem",
     alignItems: "flex-end",
   },
+  // ── Bouton flottant messagerie ───────────────────────────────────────────
+  fabChat: {
+    position: 'fixed',
+    bottom: '1.5rem',
+    right: '1.5rem',
+    width: '52px',
+    height: '52px',
+    borderRadius: '50%',
+    background: 'var(--color-accent)',
+    color: 'var(--color-ocean-deep)',
+    border: 'none',
+    fontSize: '1.4rem',
+    boxShadow: '0 4px 20px rgba(0, 191, 255, 0.35)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2800,
+    cursor: 'pointer',
+    transition: 'transform 0.15s, box-shadow 0.15s',
+    position: 'fixed',
+  },
+  fabBadge: {
+    position: 'absolute',
+    top: '-4px',
+    right: '-4px',
+    background: 'var(--color-danger)',
+    color: '#fff',
+    fontSize: '0.65rem',
+    fontWeight: 700,
+    padding: '0.1rem 0.35rem',
+    borderRadius: '999px',
+    minWidth: '18px',
+    textAlign: 'center',
+    lineHeight: '1.4',
+  },
   sosBar: {
     background: "var(--color-ocean-mid)",
     borderTop: "1px solid var(--color-border)",
@@ -295,18 +428,6 @@ const S = {
     alignItems: "center",
     gap: "0.375rem",
     flexShrink: 0,
-  },
-  sosBtn: {
-    background: "var(--color-danger)",
-    color: "#fff",
-    border: "none",
-    borderRadius: "var(--radius-md)",
-    padding: "0.875rem 2.5rem",
-    fontSize: "1.125rem",
-    fontWeight: 700,
-    width: "100%",
-    maxWidth: "480px",
-    transition: "opacity 0.2s",
   },
   sosHint: { fontSize: "0.75rem", color: "var(--color-text-muted)" },
 };
